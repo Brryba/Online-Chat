@@ -1,3 +1,4 @@
+import java.io.IOException;
 import java.net.*;
 import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
@@ -5,7 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Main {
     private static final int CONNECTION_PORT_UDP = 50_000;
     private static final int CONNECTION_PORT_TCP = 50_001;
-    private static final String LOCAL_ADDRESS = "127.0.0.3";
+    private static final String LOCAL_ADDRESS = "127.0.0.2";
     private static final String BROADCAST_ADDRESS = "255.255.255.255";
     private static final ConcurrentHashMap<Socket, String> connectedUsersNames = new ConcurrentHashMap<>();
 
@@ -91,7 +92,7 @@ public class Main {
         }
     }
 
-    private static void receiveTCPMessages(Socket socket) {
+    private static void receiveTCPMessages(Socket socket) throws IOException {
         try {
             while (!socket.isClosed()) {
                 byte[] bytes = new byte[1024];
@@ -100,7 +101,12 @@ public class Main {
                 System.out.println(socket.getInetAddress().getHostAddress() + " " + connectedUsersNames.get(socket)
                         + " : " + input);
             }
-        } catch (Exception e) {
+        } catch (SocketException e) {
+            System.out.println(socket.getInetAddress().getHostAddress() + connectedUsersNames.get(socket) + " disconnected");
+            socket.close();
+            connectedUsersNames.remove(socket);
+        }
+        catch (Exception e) {
             System.err.println("Error: " + e);
         }
     }
